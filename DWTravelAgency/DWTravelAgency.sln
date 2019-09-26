@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.572
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{D2ABAB84-BF74-430A-B69E-9DC6D40DDA17}") = "DWTravelAgency", "DWTravelAgency\DWTravelAgency.dwproj", "{D7A0636E-58EB-4EB7-B5D7-3C590C7C2250}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Development|Default = Development|Default
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D7A0636E-58EB-4EB7-B5D7-3C590C7C2250}.Development|Default.ActiveCfg = Development
+		{D7A0636E-58EB-4EB7-B5D7-3C590C7C2250}.Development|Default.Build.0 = Development
+		{D7A0636E-58EB-4EB7-B5D7-3C590C7C2250}.Development|Default.Deploy.0 = Development
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C93984BD-D835-448A-93DB-B1CCA0A3598F}
+	EndGlobalSection
+EndGlobal
