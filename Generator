@@ -1,0 +1,162 @@
+from typing import Tuple
+from datetime import timedelta
+from unidecode import unidecode
+from faker import Faker
+import barnum as Ba
+import random
+import csv
+import names
+
+def main():
+ fake = Faker()
+ random.seed()
+
+ rok = 1
+ officesNo = 16
+ addressesNo = 26000         #25 100 people + other companies & hotels
+ hotelsNo = 200
+ transportCompaniesNo = 100
+ personsNo = 25100           #25 000 customers + employees
+ employeesNo = 59            #approx. 3 people per one office
+ tripsNo = 1000000           #approx. 40 people per one trip
+ billsNo = 1000000
+ lives = 25100               #25 100 people
+ transports = 1000000        #there were 1 000 000 trpis
+ residences = 1000000
+ participates = 1000000
+
+ #one trip = approx. 40 people
+
+ hotelType = ['*', '**', '***', '****', '*****', 'motel']
+ transportType = ['ship', 'train', 'bus', 'plane']
+ tripType = ['round trip', 'recreation trip', 'leisure trip', 'individual trip']
+ maxDiscount = 30
+ tripNotes = ['transport delay', 'natural catastrophy', 'problems with the hotel', 'none', 'none', 'none']
+ paymentType = ['cash', 'card', 'bank transfer']
+ position = ['office worker', 'office worker', 'office worker', 'manager', 'CEO']
+ teryt = ['02', '04', '06', '08', '10', '12', '14', '16', '18', '20 ', '22', '24', '26', '28', '30', '32']
+ additionalCosts = ['none', 'tour guide', 'sightseeing costs (museums)']
+ comments = ['too expensive hotel', 'too expensive transport', 'none', 'none', 'too small profit', 'none']
+ countryCode = ['pl_PL', 'cs_CZ', 'de_DE', 'dk_DK', 'el_GR', 'en_GB', 'en_US',
+                'es_ES', 'fr_FR', 'it_IT', 'pt_PT', 'sv_SE', 'ru_RU']
+ countryName = ['Poland', 'Czech Republic', 'Germany', 'Denmark', 'Greece', 'United Kingdom',
+                'United States', 'Spain', 'France', 'Italy', 'Portugal', 'Sweden', 'Russia']
+
+ #Address(Country, Street, Postcode, City)
+ file = open("address.txt", "a")
+ for x in range(addressesNo):
+  number = random.randint(0, len(countryCode) - 1)
+  country = Faker(countryCode[number])
+  record = str(x + 1) + ('\t') + str(countryName[number]) + ('\t') + str(country.street_address())\
+           + ('\t') + str(country.postcode()) + ('\t') + str(country.city())
+  file.write(unidecode(record) + '\n')
+  #print(record)
+ file.close()
+
+ #Hotel (AddressID, HotelName, HotelType, E_mail, PhoneNo)
+ file = open("hotel.txt", "w")
+ for x in range(hotelsNo):
+  record = str(x + 1) + ('\t') + str(random.randint(1, addressesNo)) + ('\t') + Ba.create_company_name() + ('\t') + random.choice(hotelType) + ('\t') + Ba.create_email() + ('\t') + Ba.create_phone()
+  file.write(record + '\n')
+ file.close()
+
+ #Transport Company(AddressID, CompanyName, TransportType, Discount, E_mail, PhoneNo)
+ file = open("transportCompany.txt", "w")
+ for x in range(transportCompaniesNo):
+  record = str(x + 1) + ('\t') + str(random.randint(1, addressesNo)) + ('\t') + Ba.create_company_name() + ('\t') + random.choice(transportType) + ('\t') + str(random.randint(7, maxDiscount)) + ('\t') + Ba.create_email() + ('\t') + Ba.create_phone()
+  file.write(record + '\n')
+ # file.close()
+
+ #Transports (TransportID, TripID , CompanyID, Arrival)
+ file = open("transports.txt", "a")
+ for x in range(transports):
+  record = str(x + 1) + ('\t') + str(x + 1) + ('\t') + str(random.randint(1, transportCompaniesNo)) + ('\t') + str('1')
+  file.write(record + '\n')
+ for x in range(transports):
+  record = str(x + 1000001) + ('\t') + str(x + 1) + ('\t') + str(random.randint(1, transportCompaniesNo)) + ('\t') + str('0')
+  file.write(record + '\n')
+ file.close()
+
+ Person (Name, Surname, BirthDate, E_mail, PhoneNo)
+ file = open("person.txt", "w")
+ for x in range(personsNo):
+  record = str(x + 1) + ('\t') + str(names.get_first_name()) + ('\t') + str(names.get_last_name()) + ('\t') + str(Ba.create_birthday(3, 80)) + ('\t') + str(Ba.create_email()) + ('\t') + str(Ba.create_phone())
+  file.write(record + '\n')
+  #Employee (PersonID, WorkingStartDate, WorkingFinishDate, PeselNo, Position, OfficeNo)
+  if x % 422 == 0:
+      file1 = open("employee.txt", "a")
+      startDate = Ba.create_birthday(0, 2)
+      if x % 3 == 0:
+         finishDate = str(startDate + timedelta(days=(random.randint(1, 300))))
+      else:
+         finishDate = 'NULL'
+      pesel = str(random.randint(45, 99)) + str(random.randint(10, 12)) + str(random.randint(10, 30)) + str(random.randint(12465, 97563))
+      record1 = str(random.randint(1, personsNo)) + ('\t') + str(startDate) + ('\t') + str(finishDate) + ('\t') + str(pesel) + ('\t') + str(random.choice(position)) + ('\t') + random.choice(teryt) + str(random.randint(1, 10))
+      file1.write(record1 + '\n')
+      file1.close()
+ file.close()
+
+ #Lives(PersonID , AddressID)
+ file = open("lives.txt", "w")
+ for x in range(lives):
+  record = str(random.randint(1, personsNo)) + ('\t') + str(random.randint(1, addressesNo))
+  file.write(record + '\n')
+ # file.close()
+
+ #Residences(TripID, HotelID)
+ file = open("residences.txt", "w")
+ for x in range(residences):
+  record = str(x + 1) + ('\t') + str(random.randint(1, hotelsNo))
+  file.write(record + '\n')
+ file.close()
+
+ #Trip(StartDate, FinishDate, TripType, TripNotes)
+ file = open("trips.txt", "w")
+ for x in range(4):
+  date = Ba.create_birthday(rok, rok+1)
+  record = str(x + 1) + ('\t') + str(date) + ('\t') + str(date + timedelta(days=(random.randint(1,14)))) + ('\t') + random.choice(tripType) + ('\t') + random.choice(tripNotes)
+  file.write(record + '\n')
+ file.close()
+
+ Bill(EmployeeID, DateofInvoice, PaymentDate, Cost, Payment)
+ file = open("bill.txt", "a")
+ for x in range(4):
+  date = Ba.create_birthday(rok, rok + 1)
+  invoiceDate = date - timedelta(days=(random.randint(70, 120)))
+  record = str(x + 1) + ('\t') + str(random.randint(1, employeesNo)) + ('\t') + str(invoiceDate) + ('\t') + str(invoiceDate + timedelta(days=(random.randint(2, 30)))) + ('\t') + str(random.randint(300, 30000)) + ('\t') + str(random.choice(paymentType))
+  file.write(record + '\n')
+ file.close()
+
+ #Participate(PersonID, TripId, BillID)
+ file = open("participate.txt", "a")
+ for x in range(4):
+   record =  str(random.randint(1, personsNo)) + ('\t') + str(random.randint(1, tripsNo)) + ('\t') + str(random.randint(1, billsNo))
+   file.write(record + '\n')
+ file.close()
+
+ #EXCEL
+ file = open("dataExcel.txt", "a")
+ #file.write('TripID'+ ('\t') + 'TotalProfit' + ('\t') + 'StartCity' + ('\t') + 'StartCountry' + ('\t') + 'DestinationCity'
+ #           + ('\t') + 'DestinationCountry' + ('\t') + 'DateOfBeginning' + ('\t') + 'DateOfEnd' + ('\t') + 'TotalRevenue'
+ #           + ('\t') + 'TotalCost' + ('\t') + 'PricePerPerson' + ('\t') + 'NumberOfParticipants' + ('\t') + 'TripComments' + '\n')
+ for x in range(tripsNo):
+  number = random.randint(1, len(countryCode) - 1)
+  country = Faker(countryCode[number])
+  startDate = Ba.create_birthday(0, 5)
+  finishDate = startDate + timedelta(days=(random.randint(2, 15)))
+  participants = random.randint(15, 45)
+  pricePerPerson = random.randint(700, 20000)
+  revenue = participants * pricePerPerson
+  totalCost = random.randint(30000, 70000)
+  record = str(x + 175621) + ('\t') + str(revenue - totalCost) + ('\t') + str(country.city()) + ('\t') + str(
+   countryName[number])
+  number = random.randint(1, len(countryCode) - 1)
+  country = Faker(countryCode[number])
+  record = record + ('\t') + str(country.city()) + ('\t') + str(countryName[number]) + ('\t') + \
+           str(startdate) + ('\t') + str(finishdate) + ('\t') + str(revenue) + ('\t') + str(totalcost) + \
+           ('\t') + str(priceperperson) + ('\t') + str(participants) + ('\t') + random.choice(comments)
+  file.write(unidecode(record) + '\n')
+  print(record)
+ file.close()
+
+main()
