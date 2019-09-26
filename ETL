@@ -1,0 +1,237 @@
+USE TravelAgencyDataWarehouse
+GO
+
+--DATE
+DECLARE @start DATE = '2015-01-01'
+	WHILE @start < DATEADD(month, 3, GETDATE())
+	  BEGIN
+		INSERT INTO DATE (Date, Year, Month, DayOfWeek, Season, Holiday)
+		VALUES(@start, DATEPART(YY,@start), DATEPART(mm,@start), DATENAME(dw,@start),
+				CASE
+					WHEN DATEPART(mm,@start) = 12 OR DATEPART(mm,@start) = 1 OR DATEPART(mm,@start) = 2 THEN 'Winter'
+					WHEN DATEPART(mm,@start) = 3 OR DATEPART(mm,@start) = 4 OR DATEPART(mm,@start) = 5 THEN 'Spring'
+					WHEN DATEPART(mm,@start) = 6 OR DATEPART(mm,@start) = 7 OR DATEPART(mm,@start) = 8 THEN 'Summer'
+					WHEN DATEPART(mm,@start) = 9 OR DATEPART(mm,@start) = 10 OR DATEPART(mm,@start) = 11 THEN 'Autumn'
+				END, NULL)
+		SET @start = DATEADD(dd,1,@start)
+	  END
+
+UPDATE DATE
+	SET Holiday = 'New Year'
+		WHERE DATEPART(mm, Date) = 1 AND DATEPART(dd, Date) = 1
+
+UPDATE DATE
+	SET Holiday = 'Epiphany'
+		WHERE DATEPART(mm, Date) = 1 AND DATEPART(dd, Date) = 6
+
+UPDATE DATE
+	SET Holiday = 'Labour Day'
+		WHERE DATEPART(mm, Date) = 5 AND DATEPART(dd, Date) = 1
+
+UPDATE DATE
+	SET Holiday = 'Constitution Day'
+		WHERE DATEPART(mm, Date) = 5 AND DATEPART(dd, Date) = 3
+
+UPDATE DATE
+	SET Holiday = 'Polish Independence Day'
+		WHERE DATEPART(mm, Date) = 11 AND DATEPART(dd, Date) = 11
+
+UPDATE DATE
+	SET Holiday = 'All Saints Day'
+		WHERE DATEPART(mm, Date) = 11 AND DATEPART(dd, Date) = 1
+
+UPDATE DATE
+	SET Holiday = 'Christmas Eve'
+		WHERE DATEPART(mm, Date) = 12 AND DATEPART(dd, Date) = 24
+
+UPDATE DATE
+	SET Holiday = 'Christmas'
+		WHERE DATEPART(mm, Date) = 12 AND DATEPART(dd, Date) = 25
+
+UPDATE DATE
+	SET Holiday = 'Second day of Christmas'
+		WHERE DATEPART(mm, Date) = 12 AND DATEPART(dd, Date) = 26
+
+UPDATE DATE
+	SET Holiday = 'New Years Eve'
+		WHERE DATEPART(mm, Date) = 12 AND DATEPART(dd, Date) = 31
+
+UPDATE DATE
+	SET Holiday = 'None'
+		WHERE Holiday IS NULL
+
+
+--SELECT * FROM DATE
+
+TRIP_INFO
+ DECLARE @cnt1 INT = 0;
+ DECLARE @cnt2 INT = 0;
+
+	WHILE @cnt1 < 4
+	BEGIN
+		SET @cnt2 = 0
+		WHILE @cnt2 < 4
+		BEGIN
+			INSERT INTO TRIP_INFO(TripType, TripNotes)
+				VALUES (CASE
+							WHEN @cnt1 = 0 THEN 'round trip'
+							WHEN @cnt1 = 1 THEN 'recreation trip'
+							WHEN @cnt1 = 2 THEN 'leisure trip'
+							WHEN @cnt1 = 3 THEN 'individual trip'
+						END, 
+						CASE
+							WHEN @cnt2 = 0 THEN 'transport delay'
+							WHEN @cnt2 = 1 THEN 'natural catastrophy'
+							WHEN @cnt2 = 2 THEN 'problems with the hotel'
+							WHEN @cnt2 = 3 THEN 'none'
+						END)
+		SET @cnt2 = @cnt2 + 1 
+		END
+	SET @cnt1 = @cnt1 + 1 
+	END
+
+--SELECT * FROM TRIP_INFO
+
+--LOCATION
+MERGE INTO TravelAgencyDataWarehouse.dbo.LOCATION AS TargetTable
+	USING (SELECT DISTINCT City, Country FROM TravelAgencyDatabase.dbo.ADDRESS) AS SourceTable
+		ON (TargetTable.City = SourceTable.City)
+			WHEN NOT MATCHED 
+				THEN INSERT VALUES (SourceTable.City, SourceTable.Country);
+
+--SELECT * FROM LOCATION
+
+--TRANSPORT
+MERGE INTO TravelAgencyDataWarehouse.dbo.TRANSPORT AS TargetTable
+	USING TravelAgencyDatabase.dbo.TRANSPORT_COMPANY AS SourceTable
+		ON TargetTable.TransportKey = SourceTable.CompanyID
+			WHEN NOT MATCHED
+				THEN INSERT VALUES (SourceTable.CompanyID, SourceTable.CompanyName, SourceTable.TransportType,
+									CASE
+										WHEN SourceTable.Discount <= 14 THEN 'SMALL group of people'
+										WHEN SourceTable.Discount BETWEEN 15 AND 28 THEN 'MEDIUM group of people'
+										WHEN SourceTable.Discount >= 29 THEN 'LARGE group of people'
+									END);
+
+--SELECT * FROM TRANSPORT
+
+--HOTEL
+
+MERGE INTO TravelAgencyDataWarehouse.dbo.HOTEL AS TargetTable
+	USING TravelAgencyDatabase.dbo.HOTEL AS SourceTable
+		ON TargetTable.HotelKey = SourceTable.HotelID
+			WHEN NOT MATCHED 
+				THEN INSERT VALUES (SourceTable.HotelID, SourceTable.HotelName, SourceTable.HotelType, GETDATE(), CAST(NULL AS DATE))
+			WHEN MATCHED
+					AND (SourceTable.HotelName <> TargetTable.HotelName
+					OR SourceTable.HotelType <> TargetTable.HotelType) 
+					AND TargetTable.ExpiredDate = '9999-01-01'
+				THEN UPDATE
+						SET TargetTable.ExpiredDate = GETDATE()
+			WHEN NOT MATCHED BY SOURCE 
+				THEN UPDATE
+						SET TargetTable.ExpiredDate = GetDate();
+GO
+
+INSERT INTO TravelAgencyDataWarehouse.dbo.HOTEL (HotelKey, HotelName, HotelType, InsertionDate, ExpiredDate)
+	SELECT HotelID, HotelName, HotelType, GETDATE(), CAST(NULL AS DATE) FROM TravelAgencyDatabase.dbo.HOTEL 
+		EXCEPT
+			SELECT HotelKey, HotelName, HotelType, GETDATE(), NULL FROM TravelAgencyDataWarehouse.dbo.HOTEL
+
+UPDATE HOTEL
+	SET ExpiredDate = '01-01-9999'
+		WHERE ExpiredDate IS NULL
+
+--SELECT * FROM HOTEL
+
+--TRIP
+
+--CREATING TEMPORARY TABLE TO BULK INSERT DATA FROM EXCEL FILE
+DROP TABLE IF EXISTS #TRIP_EXCEL
+
+CREATE TABLE #TRIP_EXCEL (
+	TripID int PRIMARY KEY,
+	TotalProfit float,
+	StartCity varchar(40),
+	StartCountry varchar(30),
+	DestinationCity varchar(40),
+	DestinationCountry varchar(30),
+	DateOfBeginning date,
+	DateOfEnd date,
+	TotalRevenue float,
+	TotalCost float,
+	PricePerPerson float,
+	NumberOfParticipants int,
+	TripComments varchar(60),
+);
+
+
+
+BULK INSERT dbo.#TRIP_EXCEL FROM 'C:\Users\Anytram\Desktop\GeneratorDW\Generator\data2\Excel2.bulk' 
+	WITH (FIRSTROW = 2, FIELDTERMINATOR='\t')
+
+--SELECT * FROM #TRIP_EXCEL
+
+
+MERGE INTO TravelAgencyDataWarehouse.dbo.TRIP AS TargetTable
+	USING TravelAgencyDatabase.dbo.TRIP AS SourceTable
+		ON TargetTable.TripID = SourceTable.TripID
+			WHEN NOT MATCHED
+				THEN INSERT VALUES (SourceTable.TripID, 
+						--StartDate
+						(SELECT DateID FROM TravelAgencyDataWarehouse.dbo.DATE AS T1 
+							WHERE T1.Date = SourceTable.StartDate), 
+						--FinishDate
+						(SELECT DateID FROM TravelAgencyDataWarehouse.dbo.DATE AS T1 
+							WHERE T1.Date = SourceTable.FinishDate), 
+						--StartingLocationID
+						(SELECT LocationID FROM TravelAgencyDataWarehouse.dbo.LOCATION
+							JOIN #TRIP_EXCEL AS T1 ON (T1.StartCity = LOCATION.City AND T1.StartCountry = LOCATION.Country) 
+								WHERE T1.TripID = SourceTable.TripID),
+						--DestinationLocationID 
+						(SELECT LocationID FROM TravelAgencyDataWarehouse.dbo.LOCATION
+							JOIN #TRIP_EXCEL AS T1 ON (T1.DestinationCity = LOCATION.City AND T1.DestinationCountry = LOCATION.Country) 
+								WHERE T1.TripID = SourceTable.TripID),
+						--ArrivalTransportID
+						(SELECT T1.TransportID FROM TravelAgencyDataWarehouse.dbo.TRANSPORT AS T1 
+							JOIN TravelAgencyDatabase.dbo.TRANSPORTS AS T2 ON T1.TransportKey = T2.CompanyID 
+								WHERE T2.Arrival = '1' AND T2.TripID = SourceTable.TripID),
+						--DepartureTransportID
+						(SELECT T1.TransportID FROM TravelAgencyDataWarehouse.dbo.TRANSPORT AS T1 
+							JOIN TravelAgencyDatabase.dbo.TRANSPORTS AS T2 ON T1.TransportKey = T2.CompanyID 
+								WHERE T2.Arrival = '0' AND T2.TripID = SourceTable.TripID),
+						--HotelID
+						(SELECT T1.HotelID FROM TravelAgencyDataWarehouse.dbo.HOTEL AS T1 
+							JOIN TravelAgencyDatabase.dbo.RESIDENCES AS T2 ON T1.HotelKey = T2.HotelID 
+								WHERE T2.TripID = SourceTable.TripID AND T1. ExpiredDate = '01-01-9999'),
+						--TripInfoID
+						(SELECT TRIP_INFO.TripInfoID FROM TravelAgencyDataWarehouse.dbo.TRIP_INFO 
+							WHERE TripNotes = SourceTable.TripNotes AND TripType = SourceTable.TripType),
+						--NumberOfParticipants
+						(SELECT NumberOfParticipants FROM #TRIP_EXCEL AS T1 
+							WHERE T1.TripID = SourceTable.TripID),
+						--Profit
+						(SELECT TotalRevenue - TotalCost FROM #TRIP_EXCEL AS T1 
+							WHERE T1.TripID = SourceTable.TripID), 
+						--NumberOfPeopleInAgeRange1 (Under 15)
+						(SELECT count(*) FROM TravelAgencyDatabase.dbo.PERSON AS T1
+							JOIN TravelAgencyDatabase.dbo.PARTICIPATE AS T2 ON T1.PersonID = T2.PersonID
+								WHERE (DATEPART(YY, GETDATE()) - DATEPART(YY, BirthDate) < 15) AND T2.TripID = SourceTable.TripID),
+						--NumberOfPeopleInAgeRange2 (Between 16 - 27)						
+						(SELECT count(*) FROM TravelAgencyDatabase.dbo.PERSON AS T1
+							JOIN TravelAgencyDatabase.dbo.PARTICIPATE AS T2 ON T1.PersonID = T2.PersonID
+								WHERE (DATEPART(YY, GETDATE()) - DATEPART(YY, BirthDate) BETWEEN 16 AND 27) AND T2.TripID = SourceTable.TripID),
+						--NumberOfPeopleInAgeRange3 (Between 28 - 39)
+						(SELECT count(*) FROM TravelAgencyDatabase.dbo.PERSON AS T1
+							JOIN TravelAgencyDatabase.dbo.PARTICIPATE AS T2 ON T1.PersonID = T2.PersonID
+								WHERE (DATEPART(YY, GETDATE()) - DATEPART(YY, BirthDate) BETWEEN 28 AND 39) AND T2.TripID = SourceTable.TripID),						
+						--NumberOfPeopleInAgeRange4 (Between 40 - 55)
+						(SELECT count(*) FROM TravelAgencyDatabase.dbo.PERSON AS T1
+							JOIN TravelAgencyDatabase.dbo.PARTICIPATE AS T2 ON T1.PersonID = T2.PersonID
+								WHERE (DATEPART(YY, GETDATE()) - DATEPART(YY, BirthDate) BETWEEN 40 AND 55) AND T2.TripID = SourceTable.TripID),						
+						--NumberOfPeopleInAgeRange5 (Over 56)
+						(SELECT count(*) FROM TravelAgencyDatabase.dbo.PERSON AS T1
+							JOIN TravelAgencyDatabase.dbo.PARTICIPATE AS T2 ON T1.PersonID = T2.PersonID
+								WHERE (DATEPART(YY, GETDATE()) - DATEPART(YY, BirthDate) > 56) AND T2.TripID = SourceTable.TripID));
+
+SELECT * FROM TRIP
