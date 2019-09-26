@@ -1,0 +1,55 @@
+
+BULK INSERT dbo.ADDRESS FROM 'C:\Users\Anytram\Desktop\Generator\data2\address.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.HOTEL FROM 'C:\Users\Anytram\Desktop\Generator\data2\hotel.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.TRANSPORT_COMPANY FROM 'C:\Users\Anytram\Desktop\Generator\data2\transportCompany.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.TRIP FROM 'C:\Users\Anytram\Desktop\Generator\data2\trips.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.BILL FROM 'C:\Users\Anytram\Desktop\Generator\data2\bill.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.LIVES FROM 'C:\Users\Anytram\Desktop\Generator\data2\lives.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.TRANSPORTS FROM 'C:\Users\Anytram\Desktop\Generator\data2\transports.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.PARTICIPATE FROM 'C:\Users\Anytram\Desktop\Generator\data2\participate.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.RESIDENCES FROM 'C:\Users\Anytram\Desktop\Generator\data2\residences.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.PERSON FROM 'C:\Users\Anytram\Desktop\Generator\data2\person.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.EMPLOYEE FROM 'C:\Users\Anytram\Desktop\Generator\data2\employee.bulk' WITH (FIELDTERMINATOR='\t')
+
+UPDATE EMPLOYEE
+	set WorkingFinishDate = NULL
+	where WorkingFinishDate = '1900-01-01'
+	
+--CHANGES
+UPDATE PERSON
+SET Surname = 'Majdecka', PhoneNo= '609-889-590'
+WHERE PersonID = 21637;
+SELECT * FROM PERSON WHERE PersonID = 21637
+
+UPDATE TRANSPORT_COMPANY
+SET E_mail = 'pacificstar@gmail.com'
+WHERE CompanyName = 'Pacific Star';
+SELECT * FROM TRANSPORT_COMPANY WHERE CompanyName = 'Pacific Star'
+
+UPDATE EMPLOYEE
+SET Position = 'CEO', OfficeNo = '2213'
+WHERE PersonID = 4309;
+SELECT * FROM EMPLOYEE WHERE PersonID = 4309
+
+UPDATE EMPLOYEE
+SET WorkingFinishDate = '2019-03-21'
+WHERE PersonID = 12898;
+SELECT * FROM EMPLOYEE WHERE PersonID = 12898
+
+UPDATE HOTEL
+SET HotelType = '****'
+WHERE HotelName = 'Architecture Industries Resource';
+SELECT * FROM HOTEL WHERE HotelName = 'Architecture Industries Resource'
+
+--SELECT * FROM ADDRESS
+--SELECT * FROM HOTEL
+--SELECT * FROM TRANSPORT_COMPANY
+--SELECT * FROM TRIP
+--SELECT * FROM BILL
+--SELECT * FROM TRANSPORTS
+--SELECT * FROM PERSON
+--SELECT * FROM LIVES
+--SELECT * FROM PARTICIPATE
+--SELECT * FROM RESIDENCES
+--SELECT * FROM EMPLOYEE
+
