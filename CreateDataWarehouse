@@ -1,0 +1,71 @@
+IF NOT EXISTS(SELECT * FROM SYS.DATABASES WHERE name='TravelAgencyDataWarehouse')
+	CREATE DATABASE TravelAgencyDataWarehouse
+
+USE TravelAgencyDataWarehouse
+GO
+
+DROP TABLE IF EXISTS dbo.TRIP;
+DROP TABLE IF EXISTS dbo.DATE;
+DROP TABLE IF EXISTS dbo.LOCATION;
+DROP TABLE IF EXISTS dbo.TRANSPORT;
+DROP TABLE IF EXISTS dbo.HOTEL;
+DROP TABLE IF EXISTS dbo.TRIP_INFO;
+
+
+CREATE TABLE HOTEL (
+	HotelID int IDENTITY (1,1) PRIMARY KEY,
+	HotelKey int,
+	HotelName varchar(40),
+	HotelType varchar(40),
+	InsertionDate date,
+	ExpiredDate date
+);
+
+CREATE TABLE TRIP_INFO (
+	TripInfoID int IDENTITY(1,1) PRIMARY KEY,
+	TripType varchar(50),
+	TripNotes varchar(60)
+);
+
+CREATE TABLE TRANSPORT (
+	TransportID int IDENTITY(1,1) PRIMARY KEY,
+	TransportKey int,
+	TransportCompanyName varchar(30),
+	TransportType varchar(30),
+	DiscountRange varchar(50)
+);
+
+CREATE TABLE LOCATION (
+	LocationID int IDENTITY(1,1) PRIMARY KEY,
+	City varchar(40),
+	Country varchar(30) 
+);
+
+  CREATE TABLE DATE(
+	DateID int IDENTITY(1,1) PRIMARY KEY,
+	Date Date, 
+	Year INT, 
+	Month INT, 
+	DayOfWeek VARCHAR(20),
+	Season varchar(20),
+	Holiday varchar(40)
+);
+
+CREATE TABLE TRIP (
+	TripID int PRIMARY KEY,
+	StartDateID int FOREIGN KEY REFERENCES DATE,
+	FinishDateID int FOREIGN KEY REFERENCES DATE,
+	StartingLocationID int FOREIGN KEY REFERENCES LOCATION,
+	DestinationLocationID int FOREIGN KEY REFERENCES LOCATION,
+	ArrivalTransportID int FOREIGN KEY REFERENCES TRANSPORT,
+	DepartureTransportID int FOREIGN KEY REFERENCES TRANSPORT,
+	HotelID int FOREIGN KEY REFERENCES HOTEL,
+	TripInfoID int FOREIGN KEY REFERENCES TRIP_INFO,
+	NumberOfParticipants int,
+	Profit float,
+	NumberOfPeopleInAgeRange1 int,
+	NumberOfPeopleInAgeRange2 int,
+	NumberOfPeopleInAgeRange3 int,
+	NumberOfPeopleInAgeRange4 int,
+	NumberOfPeopleInAgeRange5 int
+);
