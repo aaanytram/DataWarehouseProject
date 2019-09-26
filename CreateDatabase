@@ -1,0 +1,95 @@
+DROP TABLE IF EXISTS PARTICIPATE;
+DROP TABLE IF EXISTS BILL;
+DROP TABLE IF EXISTS EMPLOYEE;
+DROP TABLE IF EXISTS LIVES;
+DROP TABLE IF EXISTS PERSON;
+DROP TABLE IF EXISTS RESIDENCES;
+DROP TABLE IF EXISTS HOTEL;
+DROP TABLE IF EXISTS TRANSPORTS;
+DROP TABLE IF EXISTS TRANSPORT_COMPANY;
+DROP TABLE IF EXISTS TRIP;
+DROP TABLE IF EXISTS ADDRESS;
+
+CREATE TABLE ADDRESS (
+	AddressID int IDENTITY(1,1) PRIMARY KEY,
+	Country varchar(30),
+	Street varchar(60),
+	Postcode varchar(20),
+	City varchar(40),
+);
+
+CREATE TABLE TRIP (
+	TripID int IDENTITY(1,1) PRIMARY KEY,
+	StartDate date,
+	FinishDate date,
+	TripType varchar(30),
+	TripNotes varchar(1500)
+);
+
+CREATE TABLE TRANSPORT_COMPANY (
+	CompanyID int IDENTITY(1,1) PRIMARY KEY,
+	AddressID int FOREIGN KEY REFERENCES ADDRESS,
+	CompanyName varchar(40),
+	TransportType varchar(30),
+	Discount int,
+	E_mail varchar(40),
+	PhoneNo varchar(30)
+);
+
+CREATE TABLE TRANSPORTS (
+	TripID int FOREIGN KEY REFERENCES TRIP,
+	CompanyID int FOREIGN KEY REFERENCES TRANSPORT_COMPANY
+); 
+
+CREATE TABLE HOTEL (
+	HotelID int IDENTITY(1,1) PRIMARY KEY,
+	AddressID int FOREIGN KEY REFERENCES ADDRESS,
+	HotelName varchar(40),
+	HotelType varchar(40),
+	E_mail varchar(40),
+	PhoneNo varchar(30)
+);
+
+CREATE TABLE RESIDENCES (
+	TripID int FOREIGN KEY REFERENCES TRIP,
+	HotelID int FOREIGN KEY REFERENCES HOTEL
+);
+
+CREATE TABLE PERSON (
+	PersonID int IDENTITY(1,1) PRIMARY KEY,
+	Name varchar(40),
+	Surname varchar(40),
+	BirthDate date,
+	E_mail varchar(60),
+	PhoneNo varchar(30)
+);
+
+CREATE TABLE LIVES (
+	PersonID int FOREIGN KEY REFERENCES PERSON,
+	AddressID int FOREIGN KEY REFERENCES ADDRESS
+);
+
+CREATE TABLE EMPLOYEE (
+	EmployeeID int IDENTITY(1,1) PRIMARY KEY,
+	PersonID int FOREIGN KEY REFERENCES PERSON,
+	WorkingStartDate date,
+	WorkingFinishDate date,
+	PeselNo varchar(20),
+	Position varchar(30),
+	OfficeNo varchar(10)
+);
+
+CREATE TABLE BILL (
+	BillID int IDENTITY(1,1) PRIMARY KEY,
+	EmployeeID int FOREIGN KEY REFERENCES EMPLOYEE,
+	DateOfInvoice date,
+	PaymentDate date,
+	Cost int,
+	Payment varchar(20)
+);
+
+CREATE TABLE PARTICIPATE (
+	PersonID int FOREIGN KEY REFERENCES PERSON,
+	TripID int FOREIGN KEY REFERENCES TRIP,
+	BillID int FOREIGN KEY REFERENCES BILL
+);
