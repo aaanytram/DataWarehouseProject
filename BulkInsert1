@@ -1,0 +1,28 @@
+
+BULK INSERT dbo.ADDRESS FROM 'C:\Users\Anytram\Desktop\Generator\data1\address.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.HOTEL FROM 'C:\Users\Anytram\Desktop\Generator\data1\hotel.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.TRANSPORT_COMPANY FROM 'C:\Users\Anytram\Desktop\Generator\data1\transportCompany.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.TRIP FROM 'C:\Users\Anytram\Desktop\Generator\data1\trips.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.BILL FROM 'C:\Users\Anytram\Desktop\Generator\data1\bill.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.LIVES FROM 'C:\Users\Anytram\Desktop\Generator\data1\lives.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.TRANSPORTS FROM 'C:\Users\Anytram\Desktop\Generator\data1\transports.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.PARTICIPATE FROM 'C:\Users\Anytram\Desktop\Generator\data1\participate.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.RESIDENCES FROM 'C:\Users\Anytram\Desktop\Generator\data1\residences.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.PERSON FROM 'C:\Users\Anytram\Desktop\Generator\data1\person.bulk' WITH (FIELDTERMINATOR='\t')
+BULK INSERT dbo.EMPLOYEE FROM 'C:\Users\Anytram\Desktop\Generator\data1\employee.bulk' WITH (FIELDTERMINATOR='\t')
+
+UPDATE EMPLOYEE
+	set WorkingFinishDate = NULL
+	where WorkingFinishDate = '1900-01-01'
+	
+--SELECT * FROM ADDRESS
+--SELECT * FROM HOTEL
+--SELECT * FROM TRANSPORT_COMPANY
+--SELECT * FROM TRIP
+--SELECT * FROM BILL
+--SELECT * FROM TRANSPORTS
+--SELECT * FROM PERSON
+--SELECT * FROM LIVES
+--SELECT * FROM PARTICIPATE
+--SELECT * FROM RESIDENCES
+--SELECT * FROM EMPLOYEE
